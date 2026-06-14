@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { 
-  Database, 
-  Smartphone, 
-  Mail, 
-  CheckCircle2, 
-  AlertCircle, 
-  RefreshCw, 
-  Settings2, 
-  X, 
-  Clock, 
+import {
+  Database,
+  Smartphone,
+  Mail,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+  Settings2,
+  X,
+  Clock,
   Activity,
   Server,
   Network,
@@ -152,13 +152,13 @@ const Integrations = () => {
   const [pmsIntegrations, setPmsIntegrations] = useState([]);
   const [commChannels, setCommChannels] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // States for Modals
   const [activeLog, setActiveLog] = useState(null);
   const [activeConfigure, setActiveConfigure] = useState(null);
   const [isSyncingId, setIsSyncingId] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Custom Toast Notification State
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
@@ -209,6 +209,8 @@ const Integrations = () => {
             channelType: 'Official Meta Channel',
             icon: Smartphone,
             color: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+            healthStatus: hotel.whatsappHealthStatus || 'ok',
+            healthNote: hotel.whatsappHealthNote || null,
             fields: [
               { label: 'Meta Phone Number ID', key: 'whatsappPhoneId', value: hotel.whatsappPhoneId || '', placeholder: 'e.g. 1049283749283' },
               { label: 'Permanent Access Token', key: 'whatsappApiKey', value: hotel.whatsappApiKey || '', placeholder: 'Meta Secret Token', type: 'password' },
@@ -243,13 +245,16 @@ const Integrations = () => {
 
   React.useEffect(() => {
     fetchIntegrations();
+    // Poll every 30s so health alerts (token expired, app secret mismatch) appear automatically
+    const interval = setInterval(fetchIntegrations, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Trigger manual API handshake synchronization
   const handleRetrySync = (id, name) => {
     setIsSyncingId(id);
     triggerToast(`Initiating direct operational handshake with ${name}...`, 'info');
-    
+
     setTimeout(() => {
       setIsSyncingId(null);
       triggerToast(`Synchronization complete! ${name} state is fully current.`, 'success');
@@ -301,11 +306,11 @@ const Integrations = () => {
 
   return (
     <div className="px-0 py-4 sm:p-6 space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-20 relative text-left font-sans">
-      
+
       {/* Dynamic Action Toast */}
       <AnimatePresence>
         {toast.show && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.95 }}
@@ -370,12 +375,11 @@ const Integrations = () => {
             const isSyncing = isSyncingId === pms.id;
             return (
               <div key={pms.id} className="bg-white border border-slate-200/60 p-5 rounded-3xl shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-all relative">
-                
+
                 {/* Status indicator */}
                 <div className="absolute top-5 right-5">
-                  <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider font-mono border ${
-                    pms.status === 'Connected' ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : 'bg-slate-100 text-slate-500 border-slate-200'
-                  }`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider font-mono border ${pms.status === 'Connected' ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : 'bg-slate-100 text-slate-500 border-slate-200'
+                    }`}>
                     {pms.status}
                   </span>
                 </div>
@@ -466,12 +470,11 @@ const Integrations = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {commChannels.map((channel) => (
             <div key={channel.id} className="bg-white border border-slate-200/60 p-5 rounded-3xl shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-all relative">
-              
+
               {/* Status Badge */}
               <div className="absolute top-5 right-5">
-                <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider font-mono border ${
-                  channel.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : 'bg-amber-50 text-amber-600 border-amber-100'
-                }`}>
+                <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider font-mono border ${channel.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-150' : 'bg-amber-50 text-amber-600 border-amber-100'
+                  }`}>
                   {channel.status}
                 </span>
               </div>
@@ -502,14 +505,51 @@ const Integrations = () => {
                 {channel.id === 'whatsapp' && hotelData?.whatsappConnected && (
                   <div className="pt-2 mt-2 border-t border-slate-200/50 flex flex-col gap-1">
                     <span className="text-[8px] font-black text-[#6D4AFF] uppercase font-mono">Webhook Endpoint</span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-1">
                       <span className="bg-white border border-slate-200 rounded px-2 py-1 text-[9px] font-mono text-slate-500 truncate select-all flex-1">
                         {`${API_BASE_URL}/api/webhooks/whatsapp/${hotelData.id}`}
                       </span>
+                      {API_BASE_URL.includes('localhost') && (
+                        <span className="text-[8px] text-amber-600 font-semibold leading-tight mt-0.5">
+                          ⚠️ Localhost detected. In local development, use your ngrok URL for webhook delivery.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {channel.id === 'email' && hotelData?.emailConnected && (
+                  <div className="pt-2 mt-2 border-t border-slate-200/50 flex flex-col gap-1">
+                    <span className="text-[8px] font-black text-[#6D4AFF] uppercase font-mono">Email Webhook Endpoint (Forward Target)</span>
+                    <div className="flex flex-col gap-1">
+                      <span className="bg-white border border-slate-200 rounded px-2 py-1 text-[9px] font-mono text-slate-500 truncate select-all flex-1">
+                        {`${API_BASE_URL}/api/webhooks/email/${hotelData.id}`}
+                      </span>
+                      {API_BASE_URL.includes('localhost') && (
+                        <span className="text-[8px] text-amber-600 font-semibold leading-tight mt-0.5">
+                          ⚠️ Localhost detected. Set up forwarding to your ngrok URL for local testing.
+                        </span>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
+
+              {/* ⚠️ WhatsApp Health Alert Banner */}
+              {channel.id === 'whatsapp' && channel.healthStatus && channel.healthStatus !== 'ok' && (
+                <div className={`rounded-2xl px-3 py-2.5 border text-[10px] font-semibold leading-snug font-sans flex gap-2 items-start ${
+                  channel.healthStatus === 'token_invalid'
+                    ? 'bg-red-50 border-red-200 text-red-700'
+                    : 'bg-amber-50 border-amber-200 text-amber-700'
+                }`}>
+                  <span className="text-sm flex-shrink-0">{channel.healthStatus === 'token_invalid' ? '🔑' : '🔐'}</span>
+                  <div>
+                    <p className="font-black uppercase tracking-wide text-[9px] mb-0.5 font-mono">
+                      {channel.healthStatus === 'token_invalid' ? 'Access Token Expired / Invalid' : 'App Secret Mismatch'}
+                    </p>
+                    <p>{channel.healthNote}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Card Actions */}
               <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100">
@@ -609,10 +649,9 @@ const Integrations = () => {
                   {(mockLogs[activeLog.id] || []).map((log, i) => (
                     <div key={i} className="leading-relaxed flex items-start gap-2">
                       <span className="text-slate-500 shrink-0">[{log.time}]</span>
-                      <span className={`font-bold shrink-0 ${
-                        log.level === 'SUCCESS' ? 'text-emerald-400' :
+                      <span className={`font-bold shrink-0 ${log.level === 'SUCCESS' ? 'text-emerald-400' :
                         log.level === 'WARNING' ? 'text-rose-400' : 'text-amber-400'
-                      }`}>
+                        }`}>
                         [{log.level}]
                       </span>
                       <span className="text-slate-250 font-sans font-medium">{log.msg}</span>
