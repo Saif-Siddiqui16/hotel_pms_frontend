@@ -3,5 +3,5 @@ const isLocal = window.location.hostname === 'localhost' || window.location.host
 // Local API URL vs Live API URL
 export const API_BASE_URL = isLocal
   ? (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000')
-  : 'https://pms-hotels-production.up.railway.app';
+  : 'https://hotelpmsbackend-production.up.railway.app';
 
