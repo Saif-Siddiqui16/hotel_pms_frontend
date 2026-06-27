@@ -54,32 +54,25 @@ const Conversations = () => {
   useEffect(() => {
     const fetchAllConversations = async () => {
       try {
-        const statuses = ['escalated', 'In Progress', 'active', 'resolved'];
-        const promises = statuses.map(status =>
-          fetch(`${API_BASE_URL}/api/conversations?status=${encodeURIComponent(status)}`)
-            .then(res => res.json())
-        );
-        const results = await Promise.all(promises);
+        const response = await fetch(`${API_BASE_URL}/api/conversations?status=ALL`);
+        const data = await response.json();
         
         let allConvs = [];
-        results.forEach((data, idx) => {
-          if (data.success && Array.isArray(data.data)) {
-            const transformed = data.data.map(c => ({
-              id: c.id,
-              guest: c.guestName || 'Unknown Guest',
-              lastMsg: c.lastMessage || 'No messages yet',
-              time: c.waitingDuration || 'Just now',
-              mode: (c.status === 'active' || c.status === 'resolved') ? 'AI' : 'HUMAN',
-              channel: (c.channel || 'whatsapp').toLowerCase(),
-              room: c.roomNumber || 'N/A',
-              status: c.loyaltyTier || 'Standard Member',
-              stay: c.checkoutDate ? `Until ${c.checkoutDate}` : 'Active Stay',
-              confidence: (c.status === 'active' || c.status === 'resolved') ? '98%' : 'N/A',
-              messages: [] // messages will be fetched on demand below
-            }));
-            allConvs = [...allConvs, ...transformed];
-          }
-        });
+        if (data.success && Array.isArray(data.data)) {
+          allConvs = data.data.map(c => ({
+            id: c.id,
+            guest: c.guestName || 'Unknown Guest',
+            lastMsg: c.lastMessage || 'No messages yet',
+            time: c.waitingDuration || 'Just now',
+            mode: (c.status === 'active' || c.status === 'resolved') ? 'AI' : 'HUMAN',
+            channel: (c.channel || 'whatsapp').toLowerCase(),
+            room: c.roomNumber || 'N/A',
+            status: c.loyaltyTier || 'Standard Member',
+            stay: c.checkoutDate ? `Until ${c.checkoutDate}` : 'Active Stay',
+            confidence: (c.status === 'active' || c.status === 'resolved') ? '98%' : 'N/A',
+            messages: [] // messages will be fetched on demand below
+          }));
+        }
 
         // Always set conversations, even if empty
         setConvs(prevConvs => {
@@ -540,7 +533,7 @@ const Conversations = () => {
         </div>
 
         {/* Guest Conversation Scroll */}
-        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide p-2.5 space-y-2">
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-2.5 space-y-2">
           {convs
             .filter(c => {
               const matchesSearch = c.guest.toLowerCase().includes(searchTerm.toLowerCase());
@@ -596,7 +589,7 @@ const Conversations = () => {
       {/* 2. CENTER PANEL: Live Chat Area */}
       <div className={`
         ${mobileView === 'chat' ? 'flex' : 'hidden md:flex'}
-        flex-1 flex-col bg-white h-full min-h-0
+        flex-1 flex-col bg-white h-full min-h-0 min-w-0
       `}>
         {/* Workspace Chat Header */}
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between bg-white z-10 text-left">
@@ -682,8 +675,8 @@ const Conversations = () => {
                   <div className={`hidden sm:flex w-8 h-8 rounded-xl items-center justify-center shrink-0 shadow-sm ${isGuest ? 'bg-slate-200 text-slate-600' : isAI ? 'bg-emerald-500 text-white' : 'bg-[#6D28D9] text-white'}`}>
                     {isGuest ? <span className="font-black text-[10px]">{activeConv.guest[0]}</span> : isAI ? <Bot size={15} /> : <User size={15} />}
                   </div>
-                  <div className="space-y-1">
-                    <div className={`px-3.5 py-3 rounded-xl text-[13px] leading-relaxed ${isGuest
+                  <div className="space-y-1 min-w-0">
+                    <div className={`px-3.5 py-3 rounded-xl text-[13px] leading-relaxed break-words whitespace-pre-wrap ${isGuest
                         ? 'bg-slate-100 text-slate-800 rounded-tl-none shadow-sm font-semibold text-left'
                         : isAI
                           ? 'bg-emerald-50 text-emerald-900 border border-emerald-100 rounded-tr-none text-left shadow-sm font-semibold'

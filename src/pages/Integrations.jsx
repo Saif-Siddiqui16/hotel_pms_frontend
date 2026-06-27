@@ -227,10 +227,14 @@ const Integrations = () => {
             icon: Mail,
             color: 'text-blue-600 bg-blue-50 border-blue-100',
             fields: [
-              { label: 'SMTP Host', key: 'smtpHost', value: hotel.smtpHost || 'smtp.gmail.com', placeholder: 'smtp.hotel.com' },
-              { label: 'SMTP Port', key: 'smtpPort', value: hotel.smtpPort || 587, placeholder: '587' },
+              { label: 'SMTP Host', key: 'smtpHost', value: hotel.smtpHost || '', placeholder: 'smtp.gmail.com' },
+              { label: 'SMTP Port', key: 'smtpPort', value: hotel.smtpPort || 465, placeholder: '465' },
               { label: 'SMTP User', key: 'smtpUser', value: hotel.smtpUser || '', placeholder: 'reservations@hotel.com' },
-              { label: 'SMTP Password', key: 'smtpPass', value: hotel.smtpPass || '', placeholder: '••••••••', type: 'password' }
+              { label: 'SMTP Password', key: 'smtpPass', value: hotel.smtpPass || '', placeholder: '••••••••', type: 'password' },
+              { label: 'IMAP Host', key: 'imapHost', value: hotel.imapHost || '', placeholder: 'imap.gmail.com' },
+              { label: 'IMAP Port', key: 'imapPort', value: hotel.imapPort || 993, placeholder: '993' },
+              { label: 'IMAP User', key: 'imapUser', value: hotel.imapUser || '', placeholder: 'reservations@hotel.com' },
+              { label: 'IMAP Password', key: 'imapPass', value: hotel.imapPass || '', placeholder: '••••••••', type: 'password' }
             ]
           }
         ];
@@ -512,21 +516,6 @@ const Integrations = () => {
                       {API_BASE_URL.includes('localhost') && (
                         <span className="text-[8px] text-amber-600 font-semibold leading-tight mt-0.5">
                           ⚠️ Localhost detected. In local development, use your ngrok URL for webhook delivery.
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {channel.id === 'email' && hotelData?.emailConnected && (
-                  <div className="pt-2 mt-2 border-t border-slate-200/50 flex flex-col gap-1">
-                    <span className="text-[8px] font-black text-[#6D4AFF] uppercase font-mono">Email Webhook Endpoint (Forward Target)</span>
-                    <div className="flex flex-col gap-1">
-                      <span className="bg-white border border-slate-200 rounded px-2 py-1 text-[9px] font-mono text-slate-500 truncate select-all flex-1">
-                        {`${API_BASE_URL}/api/webhooks/email/${hotelData.id}`}
-                      </span>
-                      {API_BASE_URL.includes('localhost') && (
-                        <span className="text-[8px] text-amber-600 font-semibold leading-tight mt-0.5">
-                          ⚠️ Localhost detected. Set up forwarding to your ngrok URL for local testing.
                         </span>
                       )}
                     </div>
