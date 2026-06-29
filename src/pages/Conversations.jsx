@@ -86,9 +86,12 @@ const Conversations = () => {
         });
         
         if (allConvs.length > 0) {
-          if (!allConvs.find(c => c.id === selectedId)) {
-            setSelectedId(allConvs[0].id);
-          }
+          setSelectedId(prevId => {
+            if (prevId && allConvs.some(c => c.id === prevId)) {
+              return prevId;
+            }
+            return allConvs[0].id;
+          });
         } else {
           setSelectedId(null);
         }
@@ -100,7 +103,7 @@ const Conversations = () => {
     fetchAllConversations();
     const interval = setInterval(fetchAllConversations, 5000);
     return () => clearInterval(interval);
-  }, [selectedId]);
+  }, []);
 
   // Fetch messages dynamically when selectedId changes
   useEffect(() => {
